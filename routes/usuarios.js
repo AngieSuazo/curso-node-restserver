@@ -4,6 +4,8 @@ const { usuariosGet,
         usuariosPost, 
         usuariosDelete, 
         usuariosPatch } = require('../controllers/usuarios');
+
+        
 const router =Router();
 
   router.get('/',usuariosGet);//no ejecutar función, hacer referencia a la misma
