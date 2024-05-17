@@ -1,38 +1,60 @@
 //Para al poner .res aparezcan las funciones
 const {response, request}=require('express');
+const bcrypt= require('bcryptjs');
+const Usuario= require('../models/usuario');
 
-const usuariosGet= (req=request, res=response) => {
+
+const usuariosGet= async(req=request, res=response) => {
+
+    const {limite =5,desde=0}= req.query;
+    const query= {estado :true};
     
-    //const query=req.query;
-    const {q,nombre ='No name',apikey,page =1,limit}=req.query;
+    const [total,usuarios]= await Promise.all([  //Respuesta es colección de promesas, await para que espere resolución de ambas, y desestructuración de arreglos 
+      Usuario.countDocuments(query),
+      Usuario.find(query)
+        .skip(Number(desde))
+        .limit(Number(limite))
+    ])
+
     res.json({
-        msg:'get Api-controlador',
-        q,
-        nombre,
-        apikey,
-        page,
-        limit
+      
+      total,
+      usuarios
     });
     
 }
 
-const usuariosPost= (req, res) => {
-    //const body=req.body; pasamos a desetructurar
-    const {nombre,edad}=req.body
+const usuariosPost= async(req, res= response) => {
 
-    res.status(201).json({
-        msg:'post Api-controlador',
-        nombre,
-        edad
-    })
+  //const body=req.body; pasamos a desetructurar
+  const {nombre,correo,password,rol}=req.body
+  const usuario=new Usuario({nombre,correo,password,rol});//crear instance, campos que quiero guardar en la creación del usuario 
+ 
+  //Encriptar contraseña
+  const salt=bcrypt.genSaltSync();//Salt número de vueltas para complicar encriptación, defecto es 10
+  usuario.password=bcrypt.hashSync(password,salt);//hash para encriptarlo en una sola vía, pide l password y las vueltas
+  
+  //Guardar en BD
+  await usuario.save();
+  res.status(201).json({
+      usuario
+  })
   }
 
-const usuariosPut= (req, res) => {
-    const {id}=req.params;
-    res.status(500).json({
-        msg:'put Api-controlador',
-        id
-    });
+const usuariosPut= async(req, res= response) => {
+
+  const { id} = req.params;
+    const {_id,password,google,correo, ... resto}=req.body;//datos que no quiere actualizar 
+
+    if (password){
+    //Encriptar contraseña
+    const salt=bcrypt.genSaltSync();
+    resto.password=bcrypt.hashSync(password,salt);
+    }
+
+  const usuario =await Usuario.findByIdAndUpdate(id,resto);
+  
+    res.json(usuario);
   }
 
 const usuariosPatch= (req, res) => {
@@ -41,10 +63,13 @@ const usuariosPatch= (req, res) => {
     })
   }
 
-const usuariosDelete= (req, res) => {
-    res.json({
-        msg:'delete Api-controlador'
-    })
+const usuariosDelete= async(req, res) => {
+  const {id}=req.params;
+  /////Físicamente lo borramos de l BD
+  ////const usuario =await Usuario.findByIdAndDelete(id);
+   const usuario= await Usuario.findByIdAndUpdate(id, {estado:false}); 
+  
+  res.json(usuario);
   }
 
 
