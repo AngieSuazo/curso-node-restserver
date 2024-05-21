@@ -65,11 +65,12 @@ const usuariosPatch= (req, res) => {
 
 const usuariosDelete= async(req, res) => {
   const {id}=req.params;
+  const usuario= await Usuario.findByIdAndUpdate(id, {estado:false}); 
+  /////const usuarioAutenticado=req.usuario; hay información del usuario
+  res.json(usuario);//solo devuelve usuario modificado 
+  /////const uid=req.uid; //de validar-jwt sigue el req no correcto porque se debe validar el rol del usuario 
   /////Físicamente lo borramos de l BD
   ////const usuario =await Usuario.findByIdAndDelete(id);
-   const usuario= await Usuario.findByIdAndUpdate(id, {estado:false}); 
-  
-  res.json(usuario);
   }
 
 
