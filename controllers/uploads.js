@@ -69,6 +69,7 @@ const actualizarImagen= async( req, res=response)=>{
     res.json(modelo);
 } 
 
+
 const mostrarImagen =async (req, res=response) =>{
 
     const {id, coleccion} =req.params;
@@ -99,16 +100,25 @@ const mostrarImagen =async (req, res=response) =>{
     }
 
     //Limpiar imágenes previas
-    if (modelo.img){
-        //Hay que borrar la imagen del servidor
+        if (modelo.img){
+        //Hay que borrar la imagen previa del servidor
         const pathImagen = path.join(__dirname, '../uploads', coleccion, modelo.img); //buscamos todo el path a borrar
         if (fs.existsSync(pathImagen)){  //si existe
-            return res.sendFile(pathImagen) //responder con una imagen 
+            return res.sendFile(pathImagen) //responder con la imagen 
+        } else {
+            return res.redirect(modelo.img) //*PERMITE VER IMAGEN DE CLOUDINARY
         }
-
     }
-   const pathImagen = path.join(__dirname, '../assets/no-image.jpg');
+        //Si no hay imagen responde no image 
+        const pathImagen = path.join(__dirname, '../assets/no-image.jpg');
         res.sendFile(pathImagen);
+
+        ////Para ver imagen de Cloudinary
+        //// if ( modelo.img ) {
+        //     // return res.json({   //?devulve la ruta de la imagen http:cloudinary....
+        //     //     img: modelo.img 
+        //     // });
+        
 }
 
 
@@ -154,6 +164,7 @@ const actualizarImagenCloudinary= async( req, res=response)=>{
     modelo.img = secure_url;
     await modelo.save();
     res.json(modelo);//devuelve el modelo incluyendo el link url de cloudinary donde la imagen está alojada 
+
 } 
 
 
